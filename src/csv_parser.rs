@@ -69,11 +69,11 @@ pub fn parse_csv_file(filename: &str) -> Result<CsvData, AppError> {
             if record[0].to_string() == "!fee" {
                 fee = record[1]
                     .parse::<f64>()
-                    .map_err(|err| AppError::FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
+                    .map_err(|err| FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
             } else if record[0].to_string() == "!cost_threshold" {
                 cost_threshold = record[1]
                     .parse::<f64>()
-                    .map_err(|err| AppError::FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
+                    .map_err(|err| FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
             }
         } else {
             let mut formulas: Vec<String> = vec![];

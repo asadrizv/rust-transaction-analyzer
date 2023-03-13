@@ -10,11 +10,14 @@ use std::path::Path;
 use crate::formula_evaluator::evaluate_formulas;
 use crate::csv_parser::parse_csv_file;
 
+
 fn main() -> Result<(), Box<dyn Error>> {
     let filename = "filename.csv";
 
     // Parse CSV file
     let data = parse_csv_file(filename)?;
+
+    println!("{:#?}", data);
 
     // Evaluate formulas
     let results = evaluate_formulas(data)?;
@@ -27,6 +30,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
+
+    if results.is_empty(){
+        println!("No results to write to output.csv");
+    }
 
     for row in &results {
         let mut row_values = vec![];
@@ -48,3 +55,4 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
