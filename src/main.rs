@@ -7,12 +7,18 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use crate::formula_evaluator::evaluate_formulas;
-use crate::csv_parser::parse_csv_file;
-
+use formula_evaluator::evaluate_formulas;
+use csv_parser::parse_csv_file;
+use toml::Value;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let filename = "filename.csv";
+    // Read config file
+    let mut config_file = File::open("config.toml")?;
+    let mut config_str = String::new();
+    config_file.read_to_string(&mut config_str)?;
+    let config: Value = toml::from_str(&config_str)?;
+
+    let filename = config["filename"].as_str().unwrap();
 
     // Parse CSV file
     let data = parse_csv_file(filename)?;
@@ -55,4 +61,3 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
