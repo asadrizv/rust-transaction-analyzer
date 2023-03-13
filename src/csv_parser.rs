@@ -135,3 +135,4 @@ pub fn parse_csv_file(filename: &str) -> Result<CsvData, AppError> {
         cost_threshold,
     })
 }
+
