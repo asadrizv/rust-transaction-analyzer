@@ -5,14 +5,12 @@ use std::num::ParseIntError;
 #[derive(Debug)]
 pub enum CsvParserError {
     IoError(std::io::Error),
-    CsvError(csv::Error),
 }
 
 impl fmt::Display for CsvParserError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CsvParserError::IoError(err) => write!(f, "I/O error: {}", err),
-            CsvParserError::CsvError(err) => write!(f, "CSV error: {}", err),
         }
     }
 }
@@ -21,7 +19,6 @@ impl std::error::Error for CsvParserError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             CsvParserError::IoError(err) => Some(err),
-            CsvParserError::CsvError(err) => Some(err),
         }
     }
 }
@@ -29,8 +26,6 @@ impl std::error::Error for CsvParserError {
 #[derive(Debug)]
 pub enum FormulaEvaluationErrorEnum {
     InvalidFormula(String),
-    VariableNotFound(String),
-    InvalidOperation(String),
 }
 
 impl fmt::Display for FormulaEvaluationErrorEnum {
@@ -38,12 +33,6 @@ impl fmt::Display for FormulaEvaluationErrorEnum {
         match self {
             FormulaEvaluationErrorEnum::InvalidFormula(var) => {
                 write!(f, "Invalid formula: {}", var)
-            }
-            FormulaEvaluationErrorEnum::VariableNotFound(var) => {
-                write!(f, "Variable not found: {}", var)
-            }
-            FormulaEvaluationErrorEnum::InvalidOperation(op) => {
-                write!(f, "Invalid operation: {}", op)
             }
         }
     }

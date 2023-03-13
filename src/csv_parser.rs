@@ -44,8 +44,7 @@ pub fn parse_formula(formula_str: &str) -> Result<Formula, AppError> {
 }
 
 pub fn parse_csv_file(filename: &str) -> Result<CsvData, AppError> {
-    let file = File::open(filename).map_err(|err| AppError::CsvParsingError(
-        CsvParserError::IoError(err)))?;
+    let file = File::open(filename).map_err(|err| AppError::CsvParsingError(CsvParserError::IoError(err)))?;
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
         .trim(csv::Trim::All)
@@ -55,21 +54,41 @@ pub fn parse_csv_file(filename: &str) -> Result<CsvData, AppError> {
     let mut columns = HashMap::new();
     let mut fee = 0.0;
     let mut cost_threshold = 0.0;
+    let mut prev_fields: Option<usize> = None;
 
     for (i, result) in reader.records().enumerate() {
-        let record = result.map_err(|err| AppError::CsvParsingError(
-            CsvParserError::CsvError(err)))?;
+        let record = match result {
+            Ok(r) => r,
+            Err(_) => {
+                // Skip over records that couldn't be parsed
+                continue;
+            }
+        };
+
         if record[0].starts_with('!') {
             if record[0].to_string() == "!fee" {
-                fee = record[1].parse::<f64>().map_err(|err| AppError::FormulaEvaluationError(
-                    FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
+                fee = record[1]
+                    .parse::<f64>()
+                    .map_err(|err| AppError::FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
             } else if record[0].to_string() == "!cost_threshold" {
-                cost_threshold = record[1].parse::<f64>().map_err(|err| AppError::FormulaEvaluationError(
-                    FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
+                cost_threshold = record[1]
+                    .parse::<f64>()
+                    .map_err(|err| AppError::FormulaEvaluationError(FormulaEvaluationErrorEnum::InvalidFormula(format!("Error parsing float: {}", err))))?;
             }
         } else {
             let mut formulas: Vec<String> = vec![];
             let mut tokens: Vec<String> = vec![];
+
+            if record.len() < 3 {
+                continue;
+            }
+
+            if let Some(pf) = prev_fields {
+                if record.len() != pf {
+                    // Skip over records with different number of fields than the previous record
+                    continue;
+                }
+            }
 
             for (j, cell) in record[2].split(',').enumerate() {
                 let column_label = format!("{}_{}", j + 1, record[0].to_string());
@@ -104,6 +123,8 @@ pub fn parse_csv_file(filename: &str) -> Result<CsvData, AppError> {
                         value: None,
                     });
             }
+
+            prev_fields = Some(record.len());
         }
     }
 

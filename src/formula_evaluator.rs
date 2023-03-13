@@ -44,22 +44,25 @@ pub fn evaluate_formulas(data: CsvData) -> Result<Vec<EvaluatedRow>, AppError> {
                     let column_label = parts[0];
                     let row_offset = parts[1].parse::<usize>()?;
 
-                    let column_data = data.columns.get(column_label).ok_or(AppError::FormulaEvaluationError);
-                    let referenced_formula = column_data?.get(row_offset).ok_or(AppError::FormulaEvaluationError)?;
-
-                    if referenced_formula.value.is_none() {
+                    if let Some(column_data) = data.columns.get(column_label) {
+                        if let Some(referenced_formula) = column_data.get(row_offset) {
+                            if let Some(value) = referenced_formula.value {
+                                evaluated_formulas.push(EvaluatedFormula {
+                                    name: format!("{}_{}", row.row_number, i),
+                                    value: Some(value),
+                                });
+                            } else {
+                                row_has_error = true;
+                                break;
+                            }
+                        } else {
+                            row_has_error = true;
+                            break;
+                        }
+                    } else {
                         row_has_error = true;
                         break;
                     }
-
-                    evaluated_formulas.push(EvaluatedFormula {
-                        name: format!("{}_{}", row.row_number, i),
-                        value: referenced_formula.value,
-                    });
-                }
-                _ => {
-                    row_has_error = true;
-                    break;
                 }
             }
         }
